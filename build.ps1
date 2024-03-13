@@ -26,10 +26,14 @@ else {
     New-Item -Path release/$toolname-$version/usr/local/bin/ -ItemType Directory 
     New-Item -Path release/$toolname-$version/etc/sysconfig/ -ItemType Directory 
     New-Item -Path release/$toolname-$version/usr/lib/systemd/system -ItemType Directory 
+    New-Item -Path release/$toolname-$version/var/log/$toolname -ItemType Directory 
+    New-Item -Path release/$toolname-$version/etc/rsyslog.d/ -ItemType Directory 
 }
 
 
 
 Copy-Item ./$toolname.service release/$toolname-$version/usr/lib/systemd/system/ -Recurse -Force
+Copy-Item ./sysconfig release/$toolname-$version/etc/sysconfig/$toolname -Recurse -Force
+Copy-Item ./rsyslog release/$toolname-$version/etc/rsyslog.d/$toolname -Recurse -Force
 
 go build -ldflags "$flags $yflags" -o release/$toolname-$version/usr/local/bin/$toolname main.go

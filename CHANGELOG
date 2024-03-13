@@ -1,0 +1,2 @@
+# V1.0.0-release
+- 第一个发行版本，用于发版存活的 Container，并返回对应的 http_code, 和结果，结合 nginx lua 脚本可以实现监控检查

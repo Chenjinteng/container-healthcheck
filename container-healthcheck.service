@@ -5,7 +5,8 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/container-healthcheck -port 4246
+EnvironmentFile=-/etc/sysconfig/container-healthcheck
+ExecStart=/usr/local/bin/container-healthcheck $OPTS
 KillMode=process
 Restart=always
 RestartSec=10s
