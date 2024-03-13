@@ -1,0 +1,14 @@
+[Unit]
+Description=A Container Health Check Services 
+Documentation=http://www.sretalk.com/
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/container-healthcheck -port 4246
+KillMode=process
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
