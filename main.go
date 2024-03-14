@@ -95,7 +95,7 @@ func main() {
 
 func health(c *gin.Context) {
 	Log.Infof("get health")
-	c.IndentedJSON(200, APIReturn{
+	c.JSON(200, APIReturn{
 		Code:    SUCCESS,
 		Status:  "ok",
 		Message: "i'm healthy",
@@ -112,7 +112,7 @@ func get_app_health(c *gin.Context) {
 
 	if err != nil {
 		Log.Errorf("Create New Docker Client ERROR: %v", err.Error())
-		c.IndentedJSON(500, APIReturn{
+		c.JSON(500, APIReturn{
 			Code:    CONNECT_DOCKER_ERROR,
 			Status:  "error",
 			Message: err.Error(),
@@ -127,7 +127,7 @@ func get_app_health(c *gin.Context) {
 
 	if err != nil {
 		Log.Errorf("List Running Containers ERROR: %v", err.Error())
-		c.IndentedJSON(500, APIReturn{
+		c.JSON(500, APIReturn{
 			Code:    DOCKER_OPERATIOR_ERROR,
 			Status:  "error",
 			Message: err.Error(),
@@ -164,7 +164,7 @@ func get_app_health(c *gin.Context) {
 	Log.Debugf("Match res: %v", res)
 	if len(res) == 0 {
 		Log.Errorf("No any Matches")
-		c.IndentedJSON(500, APIReturn{
+		c.JSON(500, APIReturn{
 			Code:    DOCKER_QUERY_ERROR,
 			Status:  "error",
 			Message: "no any matches",
@@ -176,14 +176,14 @@ func get_app_health(c *gin.Context) {
 		for _, con := range res {
 			multi_names = append(multi_names, con["names"].(string))
 		}
-		c.IndentedJSON(500, APIReturn{
+		c.JSON(500, APIReturn{
 			Code:    DOCKER_QUERY_ERROR,
 			Status:  "error",
-			Message: fmt.Sprintf("multi container mathes by [%s] => %s, please check!!!", expr, strings.Join(multi_names, ",")),
+			Message: fmt.Sprintf("multi container mathes by expr [%s]: %s.  PLEASE CHECK!!!", expr, strings.Join(multi_names, ",")),
 		})
 	} else {
 		Log.Infof("%v", res)
-		c.IndentedJSON(200, APIReturn{
+		c.JSON(200, APIReturn{
 			Code:    SUCCESS,
 			Status:  "ok",
 			Message: res[0],

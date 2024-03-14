@@ -34,6 +34,6 @@ else {
 
 Copy-Item ./$toolname.service release/$toolname-$version/usr/lib/systemd/system/ -Recurse -Force
 Copy-Item ./sysconfig release/$toolname-$version/etc/sysconfig/$toolname -Recurse -Force
-Copy-Item ./rsyslog release/$toolname-$version/etc/rsyslog.d/$toolname -Recurse -Force
+Copy-Item ./rsyslog release/$toolname-$version/etc/rsyslog.d/$toolname.conf -Recurse -Force
 
 go build -ldflags "$flags $yflags" -o release/$toolname-$version/usr/local/bin/$toolname main.go
