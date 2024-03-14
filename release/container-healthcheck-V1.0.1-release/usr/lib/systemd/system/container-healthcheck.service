@@ -1,0 +1,15 @@
+[Unit]
+Description=A Container Health Check Services 
+Documentation=http://www.sretalk.com/
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/sysconfig/container-healthcheck
+ExecStart=/usr/local/bin/container-healthcheck $OPTS
+KillMode=process
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

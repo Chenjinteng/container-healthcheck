@@ -1,5 +1,5 @@
 $path="main"
-$version="V1.0.0-release"
+$version="V1.0.1-release"
 $goversion=$(go version)
 $buildtime=$(Get-Date -Format 'yyyy-MM-dd hh:mm:ss')
 $author="jintengchen@outlook.com"
