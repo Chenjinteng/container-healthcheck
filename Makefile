@@ -18,10 +18,10 @@ pre_build:
 	@mkdir -p $(BUILD_DIR)/$(Version)/etc/rsyslog.d/
 
 build:
-    @go version || exit $$?;
+	@go version || exit $$?;
 	$(MAKE) pre_build
 	@CGO_ENABLED=0 GOOS="linux" GOARCH="amd64" go build -ldflags $(FLAGS) -o $(BUILD_DIR)/${Version}/usr/local/bin/$(BINARY_NAME)
-    @chmod +x $(BUILD_DIR)/$(Version)/usr/local/bin/$(BINARY_NAME)
+	@chmod +x $(BUILD_DIR)/$(Version)/usr/local/bin/$(BINARY_NAME)
 	@cp $(BINARY_NAME).service $(BUILD_DIR)/$(Version)/usr/lib/systemd/system/$(BINARY_NAME).service
 	@cp rsyslog                $(BUILD_DIR)/$(Version)/etc/rsyslog.d/$(BINARY_NAME)
 	@cp sysconfig              $(BUILD_DIR)/$(Version)/etc/sysconfig/$(BINARY_NAME)
