@@ -1,34 +1,31 @@
-BINARY_NAME="container-healthcheck"
-Version=$(cat VERSION)
-Author="Chenjinteng"
-GoVersion=$(go version)
-BuildTime=$(date +'%Y-%m-%d %H:%M:%S')
-GitCommit=$(git rev-parse --short HEAD)
+.PHONY: build pre_make clean dep
 
-FLAGS="-X 'main.Author=$Author' \
-	   -X 'main.Version=$Version' \
-	   -X 'main.GitCommit=$GitCommit' \
-       -X 'main.GoVersion=$GoVersion' \
-	   -X 'main.BuildTime=$BuildTime'" \
+BINARY_NAME=container-healthcheck
+Author=Chenjinteng
+BUILD_DIR="build"
+Version :=$(shell cat VERSION)
+GoVersion := $(shell go version)
+BuildTime := $(shell date +'%Y-%m-%d %H:%M:%S')
+GitCommit := $(shell git rev-parse --short HEAD)
 
+FLAGS="-X 'main.Author=$(Author)' -X 'main.Version=$(Version)'  -X 'main.GitCommit=$(GitCommit)'  -X 'main.GoVersion=$(GoVersion)' -X 'main.BuildTime=$(BuildTime)'"
 
-pre_make:
-    mkdir -p release/${BINARY_NAME}-${Version}/usr/local/bin/
-    mkdir -p release/${BINARY_NAME}-${Version}/etc/sysconfig/
-    mkdir -p release/${BINARY_NAME}-${Version}/usr/lib/systemd/system/
-    mkdir -p release/${BINARY_NAME}-${Version}/var/log/${BINARY_NAME}/
-    mkdir -p release/${BINARY_NAME}-${Version}/etc/rsyslog.d/
-
-build:  
-    pre_make
-    CGO_ENABLED=0 GOOS="linux" GOARCH="amd64" go build -o $(BINARY_NAME)
-
-
+pre_build:
+        @mkdir -p $(BUILD_DIR)/$(Version)/usr/local/bin/
+        @mkdir -p $(BUILD_DIR)/$(Version)/etc/sysconfig/
+        @mkdir -p $(BUILD_DIR)/$(Version)/usr/lib/systemd/system/
+        @mkdir -p $(BUILD_DIR)/$(Version)/var/log/$(BINARY_NAME)/
+        @mkdir -p $(BUILD_DIR)/$(Version)/etc/rsyslog.d/
+build:
+        $(MAKE) pre_build
+        @CGO_ENABLED=0 GOOS="linux" GOARCH="amd64" go build -ldflags $(FLAGS) -o $(BUILD_DIR)/${Version}/usr/local/bin/$(BINARY_NAME)
+        @cp $(BINARY_NAME).service $(BUILD_DIR)/$(Version)/usr/lib/systemd/system/$(BINARY_NAME)
+        @cp rsyslog                $(BUILD_DIR)/$(Version)/etc/rsyslog.d/$(BINARY_NAME)
+        @cp sysconfig              $(BUILD_DIR)/$(Version)/etc/sysconfig/$(BINARY_NAME)
 
 clean:
-    rm -rf release/${BINARY_NAME}-${Version}/
-
+        @rm -rf $(BUILD_DIR)
 
 dep:
-    export GOPROXY=https://goproxy.io,direct
-    go mod download
+        export GOPROXY=https://goproxy.io,direct
+        go mod download
