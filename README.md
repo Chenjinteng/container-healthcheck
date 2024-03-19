@@ -24,7 +24,7 @@ make install
 ```
 
 ## 三 使用
-### 3.1
+### 3.1 接口检查
 ```bash
 curl http://localhost:4246/container-healthcheck/health
 # 返回:
