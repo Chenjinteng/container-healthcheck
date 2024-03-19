@@ -104,8 +104,14 @@ func health(c *gin.Context) {
 
 func get_app_health(c *gin.Context) {
 	app_code := c.Param("app_code")
+	all := c.DefaultQuery("all", "false")
+	list_all_container := false
 
 	Log.Debugf("Param [%s]", app_code)
+
+	if all == "true" {
+		list_all_container = true
+	}
 
 	ctx := context.Background()
 	dockercli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -123,7 +129,7 @@ func get_app_health(c *gin.Context) {
 	defer dockercli.Close()
 
 	// 所有运行中的容器
-	containers, err := dockercli.ContainerList(ctx, container.ListOptions{All: false})
+	containers, err := dockercli.ContainerList(ctx, container.ListOptions{All: list_all_container})
 
 	if err != nil {
 		Log.Errorf("List Running Containers ERROR: %v", err.Error())
