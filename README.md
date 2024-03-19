@@ -5,6 +5,7 @@
 
 ### 1.1 主要问题
 二进制版蓝鲸的 APPO 服务器是 `Nginx+Docker` 单机的架构，多节点部署达到高可用。SaaS 访问请求由 appo 服务器的 Nginx 响应，并代理到对应的 Docker 容器中。而多个 APPO 服务器的高可用也是通过蓝鲸平台整体的入口 Nginx 的 `upstream` 进行配置，这会使得 Nginx 的 `upstream` 配置中以 appo 上的 nginx 的端口是否存活来判断 appo 是否存在这个逻辑会存在一定的问题，appo 的 nginx 存活并不代表对应的 docker 容器也存活。
+> 虽然可以使用添加 upstream cheker 的方式，但是上层 Nginx 还负责其它的转发，所以做全局的 checker 会有可能导致其它的服务判断失败，所以不适用。
 
 ![架构](https://typoraimgs-1258684427.cos.ap-guangzhou.myqcloud.com/typora_imgs202403191123998.png)
 
