@@ -75,6 +75,10 @@ else
 	cp -r $(BUILD_DIR)/$(Version)/arm64/* /
 endif
 
+package:
+	mkdir -p $(Workdir)/$(BUILD_DIR)/packages
+	cd $(Workdir)/$(BUILD_DIR)/$(Version)/arm64/; tar zcvf $(Workdir)/$(BUILD_DIR)/packages/$(BINARY_NAME)-$(Version)-arm64.tar.gz *
+	cd $(Workdir)/$(BUILD_DIR)/$(Version)/amd64/; tar zcvf $(Workdir)/$(BUILD_DIR)/packages/$(BINARY_NAME)-$(Version)-amd64.tar.gz *
 
 clean:
 	rm -rf $(BUILD_DIR)
