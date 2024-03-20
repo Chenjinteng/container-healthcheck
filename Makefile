@@ -2,53 +2,75 @@
 
 BINARY_NAME=container-healthcheck
 Author=Chenjinteng
-BUILD_DIR="build"
+BUILD_DIR=binary
 Version :=$(shell cat VERSION)
 GoVersion := $(shell go version)
 BuildTime := $(shell date +'%Y-%m-%d %H:%M:%S')
 GitCommit := $(shell git rev-parse --short HEAD)
+OSARCH := $(shell uname -m)
 
 FLAGS="-X 'main.Author=$(Author)' -X 'main.Version=$(Version)'  -X 'main.GitCommit=$(GitCommit)'  -X 'main.GoVersion=$(GoVersion)' -X 'main.BuildTime=$(BuildTime)'"
 
-pre_build:
+
+build_x86: ARCH=amd64
+build_x86:
+	@go version || exit $$?;
 	@mkdir -p $(BUILD_DIR)/$(Version)/$(ARCH)/usr/local/bin/
 	@mkdir -p $(BUILD_DIR)/$(Version)/$(ARCH)/etc/sysconfig/
 	@mkdir -p $(BUILD_DIR)/$(Version)/$(ARCH)/usr/lib/systemd/system/
 	@mkdir -p $(BUILD_DIR)/$(Version)/$(ARCH)/var/log/$(BINARY_NAME)/
 	@mkdir -p $(BUILD_DIR)/$(Version)/$(ARCH)/etc/rsyslog.d/
+	CGO_ENABLED=0 \
+		GOOS="linux" \
+		GOARCH="$(ARCH)" \
+		go build \
+		-ldflags $(FLAGS) \
+		-o $(BUILD_DIR)/${Version}/$(ARCH)/usr/local/bin/$(BINARY_NAME)
+	chmod +x $(BUILD_DIR)/$(Version)/$(ARCH)/usr/local/bin/$(BINARY_NAME)
 	@cp config/$(BINARY_NAME).service $(BUILD_DIR)/$(Version)/$(ARCH)/usr/lib/systemd/system/$(BINARY_NAME).service
 	@cp config/rsyslog                $(BUILD_DIR)/$(Version)/$(ARCH)/etc/rsyslog.d/$(BINARY_NAME)
 	@cp config/sysconfig              $(BUILD_DIR)/$(Version)/$(ARCH)/etc/sysconfig/$(BINARY_NAME)
 
 
-build_x86:
-	@go version || exit $$?;
-	ARCH="amd64"
-	$(MAKE) pre_build
-	@CGO_ENABLED=0 GOOS="linux" GOARCH="$(ARCH)" go build -ldflags $(FLAGS) -o $(BUILD_DIR)/${Version}/usr/local/bin/$(BINARY_NAME)
-	@chmod +x $(BUILD_DIR)/$(Version)$(ARCH)/usr/local/bin/$(BINARY_NAME)
-
+build_arm7: ARCH=arm64
 build_arm7:
 	@go version || exit $$?;
-	ARCH="arm64"
-	$(MAKE) pre_build
-	@CGO_ENABLED=0 GOOS="linux" GOARCH="$(ARCH)" GOARM=7 go build -ldflags $(FLAGS) -o $(BUILD_DIR)/${Version}/usr/local/bin/$(BINARY_NAME)
-	@chmod +x $(BUILD_DIR)/$(Version)$(ARCH)/usr/local/bin/$(BINARY_NAME)
+	@mkdir -p $(BUILD_DIR)/$(Version)/$(ARCH)/usr/local/bin/
+	@mkdir -p $(BUILD_DIR)/$(Version)/$(ARCH)/etc/sysconfig/
+	@mkdir -p $(BUILD_DIR)/$(Version)/$(ARCH)/usr/lib/systemd/system/
+	@mkdir -p $(BUILD_DIR)/$(Version)/$(ARCH)/var/log/$(BINARY_NAME)/
+	@mkdir -p $(BUILD_DIR)/$(Version)/$(ARCH)/etc/rsyslog.d/
+	CGO_ENABLED=0 \
+		GOOS="linux" \
+		GOARCH="$(ARCH)" \
+		GOARM=7 \
+		go build \
+		-ldflags $(FLAGS) \
+		-o $(BUILD_DIR)/${Version}/$(ARCH)/usr/local/bin/$(BINARY_NAME)
+	chmod +x $(BUILD_DIR)/$(Version)/$(ARCH)/usr/local/bin/$(BINARY_NAME)
+	@cp config/$(BINARY_NAME).service $(BUILD_DIR)/$(Version)/$(ARCH)/usr/lib/systemd/system/$(BINARY_NAME).service
+	@cp config/rsyslog                $(BUILD_DIR)/$(Version)/$(ARCH)/etc/rsyslog.d/$(BINARY_NAME)
+	@cp config/sysconfig              $(BUILD_DIR)/$(Version)/$(ARCH)/etc/sysconfig/$(BINARY_NAME)
 
 build:
 	$(MAKE) build_x86
 	$(MAKE) build_arm7
 
 install:
-	OSARCH := $(shell uname -m)
-	ifeq "$(OSARCH)" "x86_64"; then \
-		cp -r $(BUILD_DIR)/$(Version)/amd64/* /
-	else \
-		cp -r $(BUILD_DIR)/$(Version)/arm64/* /
-	endif
+ifeq ("$(OSARCH)", "x86_64")
+	cp -r $(BUILD_DIR)/$(Version)/amd64/* /
+else 
+	cp -r $(BUILD_DIR)/$(Version)/arm64/* /
+endif
+
 
 clean:
-	@rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR)
+
+uninstall:
+	rm -f /usr/local/bin/$(BINARY_NAME)
+	rm -f /etc/sysconfig/$(BINARY_NAME)
+	rm -f /usr/lib/systemd/system/$(BINARY_NAME).service
 
 dep:
 	GOPROXY=https://goproxy.io,direct go mod download
