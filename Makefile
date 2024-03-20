@@ -40,7 +40,7 @@ build_x86:
 		-o $(BUILD_DIR)/${Version}/$(ARCH)/usr/local/bin/$(BINARY_NAME)
 	chmod +x $(BUILD_DIR)/$(Version)/$(ARCH)/usr/local/bin/$(BINARY_NAME)
 	@cp config/$(BINARY_NAME).service $(BUILD_DIR)/$(Version)/$(ARCH)/usr/lib/systemd/system/$(BINARY_NAME).service
-	@cp config/rsyslog                $(BUILD_DIR)/$(Version)/$(ARCH)/etc/rsyslog.d/$(BINARY_NAME)
+	@cp config/rsyslog                $(BUILD_DIR)/$(Version)/$(ARCH)/etc/rsyslog.d/$(BINARY_NAME).conf
 	@cp config/sysconfig              $(BUILD_DIR)/$(Version)/$(ARCH)/etc/sysconfig/$(BINARY_NAME)
 
 
@@ -61,7 +61,7 @@ build_arm7:
 		-o $(BUILD_DIR)/${Version}/$(ARCH)/usr/local/bin/$(BINARY_NAME)
 	chmod +x $(BUILD_DIR)/$(Version)/$(ARCH)/usr/local/bin/$(BINARY_NAME)
 	@cp config/$(BINARY_NAME).service $(BUILD_DIR)/$(Version)/$(ARCH)/usr/lib/systemd/system/$(BINARY_NAME).service
-	@cp config/rsyslog                $(BUILD_DIR)/$(Version)/$(ARCH)/etc/rsyslog.d/$(BINARY_NAME)
+	@cp config/rsyslog                $(BUILD_DIR)/$(Version)/$(ARCH)/etc/rsyslog.d/$(BINARY_NAME).conf
 	@cp config/sysconfig              $(BUILD_DIR)/$(Version)/$(ARCH)/etc/sysconfig/$(BINARY_NAME)
 
 build:
@@ -74,11 +74,6 @@ ifeq ("$(OSARCH)", "x86_64")
 else 
 	cp -r $(BUILD_DIR)/$(Version)/arm64/* /
 endif
-
-package:
-	mkdir -p $(Workdir)/$(BUILD_DIR)/packages
-	cd $(Workdir)/$(BUILD_DIR)/$(Version)/arm64/; tar zcvf $(Workdir)/$(BUILD_DIR)/packages/$(BINARY_NAME)-$(Version)-arm64.tar.gz *
-	cd $(Workdir)/$(BUILD_DIR)/$(Version)/amd64/; tar zcvf $(Workdir)/$(BUILD_DIR)/packages/$(BINARY_NAME)-$(Version)-amd64.tar.gz *
 
 clean:
 	rm -rf $(BUILD_DIR)
