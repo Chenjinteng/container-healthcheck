@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 
@@ -51,10 +52,11 @@ type APIReturn struct {
 var (
 	Version, GoVersion, BuildTime, GitCommit, Author string
 	//
-	Prefix       string
-	Port         string
-	Level        string
-	PrintVersion bool
+	Prefix        string
+	Port          string
+	AppoNginxPort string
+	Level         string
+	PrintVersion  bool
 	//
 
 	Log                        = logrus.New()
@@ -72,10 +74,11 @@ var (
 )
 
 func main() {
-	flag.StringVar(&Prefix, "prefix", "/", "prefix")
-	flag.StringVar(&Port, "port", "8080", "port")
-	flag.StringVar(&Level, "level", "info", "level")
-	flag.BoolVar(&PrintVersion, "print", false, "print")
+	flag.StringVar(&Prefix, "prefix", "/", "代理转发前缀，使用nginx做转发时需要")
+	flag.StringVar(&Port, "port", "4246", "侦听的端口")
+	flag.StringVar(&AppoNginxPort, "ngx-port", "8010", "appo 上的 nginx 侦听的端口")
+	flag.StringVar(&Level, "level", "info", "日志级别，info|warn|error|debug")
+	flag.BoolVar(&PrintVersion, "version", false, "打印版本")
 	flag.Parse()
 
 	if PrintVersion {
@@ -205,32 +208,39 @@ func get_app_health(c *gin.Context) {
 		})
 	} else {
 		Log.Infof("%v", res)
-		c.JSON(200, APIReturn{
-			Code:    SUCCESS,
-			Status:  "ok",
-			Message: res[0],
-		})
-		// update_consul_kv(fmt.Sprintf("bkapps/upstreams/prod/%s", app_code))
+		// 唯一，然后判断 uwsgi 是否正常启动
+		b, uwsgiHealth := check_uwsgi_health(AppoNginxPort, app_code)
+		if b {
+			c.JSON(200, APIReturn{
+				Code:    SUCCESS,
+				Status:  "ok",
+				Message: res[0],
+			})
+		} else {
+			c.JSON(500, APIReturn{
+				Code:    DOCKER_QUERY_ERROR,
+				Status:  "error",
+				Message: fmt.Sprintf("container [%s] is Running, but uwsgi service was wrong: %v", res[0]["names"], uwsgiHealth),
+			})
+		}
 	}
-
 }
 
-// TODO: 更新 Consul KV 值
-// func update_consul_kv(key string) {
-// 	client, err := capi.NewClient(capi.DefaultConfig())
-// 	if err != nil {
-// 		Log.Errorf("Create New Consul Client ERROR: %v", err.Error())
-// 		return
-// 	}
-//
-// 	// get kv
-// 	kv := client.KV()
-//
-// 	pair, _, err := kv.Get(key, nil)
-//
-// 	if err != nil {
-// 		Log.Errorf("Get Consul KV ERROR: %v", err.Error())
-// 		return
-// 	}
-// 	Log.Infof("%v %s", pair.Key, pair.Value)
-// }
+func check_uwsgi_health(port, app_code string) (bool, string) {
+	url := fmt.Sprintf("http://localhost:%s/o/%s/", port, app_code)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		Log.Errorf("Get %s Error: %v", url, err.Error())
+		return false, err.Error()
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 502 {
+		return false, "http status code is [502]"
+	}
+
+	return true, string(resp.StatusCode)
+
+}
