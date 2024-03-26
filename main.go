@@ -229,18 +229,30 @@ func get_app_health(c *gin.Context) {
 func check_uwsgi_health(port, app_code string) (bool, string) {
 	url := fmt.Sprintf("http://localhost:%s/o/%s/", port, app_code)
 
-	resp, err := http.Get(url)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		Log.Errorf("Get %s Error: %v", url, err.Error())
+		Log.Errorf("NewRequest Error: %v", err.Error())
 		return false, err.Error()
 	}
 
-	defer resp.Body.Close()
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse /* 不跟随重定向 */
+		},
+	}
+
+	resp, err := client.Do(req)
+	if resp != nil {
+		defer resp.Body.Close()
+		Log.Errorf("Do Get Error: %v", err.Error())
+		return false, err.Error()
+
+	}
 
 	if resp.StatusCode == 502 {
 		return false, "http status code is [502]"
 	}
 
-	return true, string(resp.StatusCode)
+	return true, fmt.Sprint(resp.StatusCode)
 
 }
