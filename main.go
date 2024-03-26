@@ -242,7 +242,7 @@ func check_uwsgi_health(port, app_code string) (bool, string) {
 	}
 
 	resp, err := client.Get(url)
-	if resp != nil {
+	if err != nil {
 		Log.Errorf("Do Get Error: %v", err.Error())
 		return false, err.Error()
 
