@@ -52,6 +52,8 @@ type APIReturn struct {
 var (
 	Version, GoVersion, BuildTime, GitCommit, Author string
 	//
+	Logpath string
+
 	Prefix        string
 	Port          string
 	AppoNginxPort string
@@ -78,6 +80,7 @@ func main() {
 	flag.StringVar(&Port, "port", "4246", "侦听的端口")
 	flag.StringVar(&AppoNginxPort, "ngx-port", "8010", "appo 上的 nginx 侦听的端口")
 	flag.StringVar(&Level, "level", "info", "日志级别，info|warn|error|debug")
+	flag.StringVar(&Logpath, "logpath", "/var/log/container-healthcheck", "日志路径")
 	flag.BoolVar(&PrintVersion, "version", false, "打印版本")
 	flag.Parse()
 
@@ -91,13 +94,18 @@ func main() {
 	}
 
 	// 日志
+
+	stdoutlog, _ := os.Create(Logpath + "/gin-stdout.log")
+	applog, _ := os.Create(Logpath + "/container-healthcheck.log")
+
 	Log.Formatter = &logrus.TextFormatter{}
 	Log.Level = LogrusLevel[Level]
-	Log.Out = os.Stdout
+
+	Log.Out = applog
 
 	gin.DisableConsoleColor()
 	gin.SetMode(GinLevel[Level])
-	gin.DefaultWriter = io.MultiWriter(os.Stdout)
+	gin.DefaultWriter = io.MultiWriter(stdoutlog, os.Stdout)
 
 	router := gin.Default()
 	router.GET(Prefix+"/health", health)

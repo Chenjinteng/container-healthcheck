@@ -1,1 +1,1 @@
-OPTS=' -level info -prefix /container-healthcheck -port 4246 -ngx-port 8010'
+OPTS=' -level info -prefix /container-healthcheck -port 4246 -ngx-port 8010 -logpath /var/log/container-healthcheck'
