@@ -229,11 +229,11 @@ func get_app_health(c *gin.Context) {
 func check_uwsgi_health(port, app_code string) (bool, string) {
 	url := fmt.Sprintf("http://localhost:%s/o/%s/", port, app_code)
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		Log.Errorf("NewRequest Error: %v", err.Error())
-		return false, err.Error()
-	}
+	// req, err := http.NewRequest(http.MethodGet, url, nil)
+	// if err != nil {
+	// 	Log.Errorf("NewRequest Error: %v", err.Error())
+	// 	return false, err.Error()
+	// }
 
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -241,7 +241,7 @@ func check_uwsgi_health(port, app_code string) (bool, string) {
 		},
 	}
 
-	resp, err := client.Do(req)
+	resp, err := client.Get(url)
 	if resp != nil {
 		Log.Errorf("Do Get Error: %v", err.Error())
 		return false, err.Error()
