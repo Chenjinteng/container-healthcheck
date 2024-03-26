@@ -243,12 +243,14 @@ func check_uwsgi_health(port, app_code string) (bool, string) {
 
 	resp, err := client.Get(url)
 	if err != nil {
+		defer resp.Body.Close()
 		Log.Errorf("Do Get Error: %v", err.Error())
 		return false, err.Error()
 
 	}
 
-	defer resp.Body.Close()
+	Log.Infof("StatusCode: %d", resp.StatusCode)
+
 	if resp.StatusCode == 502 {
 		return false, "http status code is [502]"
 	}
